@@ -1,0 +1,15 @@
+version: "3.6"
+
+networks:
+  mt-partition:
+
+services:
+  rabbitmq:
+    container_name: test-rabbitmq
+    image: rabbitmq:3-management
+    networks:
+      - mt-partition
+    ports:
+      - "5672:5672"
+      - "5673:5673"
+      - "15672:15672"
