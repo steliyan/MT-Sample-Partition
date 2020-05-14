@@ -13,3 +13,19 @@ services:
       - "5672:5672"
       - "5673:5673"
       - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=test
+  redis:
+    container_name: test-redis
+    image: redis
+    networks:
+      - mt-partition
+    ports:
+      - "6379:6379"
+  redisinsight:
+    container_name: test-redisinsight
+    image: redislabs/redisinsight
+    networks:
+      - mt-partition
+    ports:
+      - "8001:8001"

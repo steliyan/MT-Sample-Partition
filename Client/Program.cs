@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Contracts;
@@ -35,8 +36,21 @@ namespace Client
                         }
 
                         var batch = line.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                        
-                        var tasks = batch.Select(id => bus.Publish<AddPaymentMessage>(new { Id = id }));
+
+                        Console.WriteLine("Batch: {0}", string.Join(", ", batch));
+
+                        var dict = batch
+                            .Distinct()
+                            .Select(x => new KeyValuePair<string, Guid>(x, NewId.NextGuid()))
+                            .ToDictionary(x => x.Key, x => x.Value);
+
+                        var tasks = batch.Select(id =>
+                            bus.Publish<PaymentMessage>(new
+                            {
+                                Id = id,
+                                CorrelationId = dict[id],
+                                Amount = (decimal) (random.Next(1000) + 100)
+                            }));
 
                         await Task.WhenAll(tasks);
 

@@ -1,13 +1,15 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Contracts;
 using MassTransit;
+using MassTransit.RedisIntegration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Server.Consumers;
+using Server.StateMachines;
 
 namespace Server
 {
@@ -27,7 +29,13 @@ namespace Server
                 {
                     services.AddMassTransit(x =>
                     {
-                        x.AddConsumer<AddPaymentConsumer>(typeof(AddPaymentConsumerDefinition));
+                        x.AddConsumer<ProcessPaymentConsumer>();
+                        x.AddSagaStateMachine<AddPaymentStateMachine, AddPaymentState>(typeof(AddPaymentSagaDefinition))
+                            .RedisRepository(r =>
+                            {
+                                r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+                                r.DatabaseConfiguration("127.0.0.1");
+                            });
 
                         x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
                         {
